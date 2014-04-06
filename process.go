@@ -24,10 +24,10 @@ func Processes() ([]Process, error) {
 	return processes()
 }
 
-// LookProcess looks up a single process by pid.
+// FindProcess looks up a single process by pid.
 //
 // Process will be nil and error will be nil if a matching process is
 // not found.
-func LookProcess(pid int) (Process, error) {
-	return lookProcess(pid)
+func FindProcess(pid int) (Process, error) {
+	return findProcess(pid)
 }

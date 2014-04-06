@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestLookProcess(t *testing.T) {
-	p, err := LookProcess(os.Getpid())
+func TestFindProcess(t *testing.T) {
+	p, err := FindProcess(os.Getpid())
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
