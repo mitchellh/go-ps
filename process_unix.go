@@ -61,6 +61,20 @@ func (p *UnixProcess) Refresh() error {
 	return err
 }
 
+func lookProcess(pid int) (Process, error) {
+	dir := fmt.Sprintf("/proc/%d", pid)
+	_, err := os.Stat(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return newUnixProcess(pid)
+}
+
 func processes() ([]Process, error) {
 	d, err := os.Open("/proc")
 	if err != nil {

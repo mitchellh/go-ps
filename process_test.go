@@ -1,8 +1,23 @@
 package ps
 
 import (
+	"os"
 	"testing"
 )
+
+func TestLookProcess(t *testing.T) {
+	p, err := LookProcess(os.Getpid())
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if p == nil {
+		t.Fatal("should have process")
+	}
+
+	if p.Pid() != os.Getpid() {
+		t.Fatalf("bad: %#v", p.Pid())
+	}
+}
 
 func TestProcesses(t *testing.T) {
 	// This test works because there will always be SOME processes
