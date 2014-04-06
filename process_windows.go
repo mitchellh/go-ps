@@ -13,13 +13,15 @@ var (
 	modKernel32                  = syscall.NewLazyDLL("kernel32.dll")
 	procCloseHandle              = modKernel32.NewProc("CloseHandle")
 	procCreateToolhelp32Snapshot = modKernel32.NewProc("CreateToolhelp32Snapshot")
-	procGetLastError             = modKernel32.NewProc("GetLastError")
 	procProcess32First           = modKernel32.NewProc("Process32FirstW")
 	procProcess32Next            = modKernel32.NewProc("Process32NextW")
 )
 
-// MAX_PATH constant from Windows API
-const MAX_PATH = 260
+// Some constants from the Windows API
+const (
+	ERROR_NO_MORE_FILES = 0x12
+	MAX_PATH            = 260
+)
 
 // PROCESSENTRY32 is the Windows API structure that contains a process's
 // information.
@@ -92,8 +94,7 @@ func processes() ([]Process, error) {
 		0x00000002,
 		0)
 	if handle < 0 {
-		// TODO(mitchellh): Use GetLastError to figure things out
-		return nil, fmt.Errorf("Error creating process snapshot.")
+		return nil, syscall.GetLastError()
 	}
 	defer procCloseHandle.Call(handle)
 
