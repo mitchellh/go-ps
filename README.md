@@ -16,3 +16,12 @@ Install using standard `go get`:
 $ go get github.com/mitchellh/go-ps
 ...
 ```
+
+## TODO
+
+Want to contribute? Here is a short TODO list of things that aren't
+implemented for this library that would be nice:
+
+  * FreeBSD support
+  * Plan9 support
+  * Eliminate the need for cgo with Darwin
