@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <sys/sysctl.h>
 
-// This is declared in process_darwin.g
+// This is declared in process_darwin.go
 extern void go_darwin_append_proc(pid_t, pid_t, char *);
 
 // Loads the process table and calls the exported Go function to insert
