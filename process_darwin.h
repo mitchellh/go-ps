@@ -10,7 +10,13 @@
 // This is declared in process_darwin.g
 extern void go_darwin_append_proc(pid_t, pid_t, char *);
 
-// Loads the process table.
+// Loads the process table and calls the exported Go function to insert
+// the data back into the Go space.
+//
+// This function is implemented in C because while it would technically
+// be possible to do this all in Go, I didn't want to go spelunking through
+// header files to get all the structures properly. It is much easier to just
+// call it in C and be done with it.
 static inline int darwinProcesses() {
     int err = 0;
     int i = 0;
