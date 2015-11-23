@@ -3,6 +3,7 @@
 package ps
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -47,11 +48,20 @@ func (p *UnixProcess) Refresh() error {
 		return err
 	}
 
+	// stat file have truncated names
 	// First, parse out the image name
 	data := string(dataBytes)
 	binStart := strings.IndexRune(data, '(') + 1
 	binEnd := strings.IndexRune(data[binStart:], ')')
-	p.binary = data[binStart : binStart+binEnd]
+
+	dataBytes, err = ioutil.ReadFile(fmt.Sprintf("/proc/%d/comm", p.pid))
+	if err != nil {
+		return err
+	}
+	p.binary = strings.TrimSpace(string(bytes.Trim(dataBytes, "\x00")))
+	if p.binary == "" {
+		return fmt.Errorf("failed to get process executable")
+	}
 
 	// Move past the image name and start parsing the rest
 	data = data[binStart+binEnd+2:]
