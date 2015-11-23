@@ -54,11 +54,17 @@ func (p *UnixProcess) Refresh() error {
 	binStart := strings.IndexRune(data, '(') + 1
 	binEnd := strings.IndexRune(data[binStart:], ')')
 
-	dataBytes, err = ioutil.ReadFile(fmt.Sprintf("/proc/%d/comm", p.pid))
-	if err != nil {
-		return err
+	for _, str := range []string{"comm", "cmdline"} {
+		dataBytes, err = ioutil.ReadFile(fmt.Sprintf("/proc/%d/%s", p.pid, str))
+		if err != nil {
+			continue
+		}
+
+		if p.binary = strings.TrimSpace(string(bytes.Trim(dataBytes, "\x00"))); p.binary != "" {
+			break
+		}
 	}
-	p.binary = strings.TrimSpace(string(bytes.Trim(dataBytes, "\x00")))
+
 	if p.binary == "" {
 		return fmt.Errorf("failed to get process executable")
 	}
