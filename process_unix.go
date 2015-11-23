@@ -14,12 +14,12 @@ import (
 // UnixProcess is an implementation of Process that contains Unix-specific
 // fields and information.
 type UnixProcess struct {
-	pid   int
-	ppid  int
-	state rune
-	pgrp  int
-	sid   int
-
+	pid    int
+	ppid   int
+	state  rune
+	pgrp   int
+	sid    int
+	cpids  []int
 	binary string
 }
 
@@ -29,6 +29,10 @@ func (p *UnixProcess) Pid() int {
 
 func (p *UnixProcess) PPid() int {
 	return p.ppid
+}
+
+func (p *UnixProcess) CPids() []int {
+	return p.cpids
 }
 
 func (p *UnixProcess) Executable() string {
@@ -58,10 +62,29 @@ func (p *UnixProcess) Refresh() error {
 		&p.pgrp,
 		&p.sid)
 
+	f, err := os.Open("/proc/%d/task")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dirnames, err := f.Readdirnames(-1)
+	if err != nil {
+		return err
+	}
+
+	for _, name := range dirnames {
+		pid, err := strconv.ParseInt(name, 10, 0)
+		if err != nil {
+			continue
+		}
+		p.cpids = append(p.cpids, int(pid))
+	}
+
 	return err
 }
 
-func findProcess(pid int) (Process, error) {
+func findProcessByPid(pid int) (Process, error) {
 	dir := fmt.Sprintf("/proc/%d", pid)
 	_, err := os.Stat(dir)
 	if err != nil {
@@ -73,6 +96,20 @@ func findProcess(pid int) (Process, error) {
 	}
 
 	return newUnixProcess(pid)
+}
+
+func findProcessByExecutable(name string) ([]Process, error) {
+	var p []Process
+	procs, err := processes()
+	if err != nil {
+		return nil, err
+	}
+	for _, proc := range procs {
+		if strings.Compare(proc.Executable(), name) == 0 {
+			p = append(p, proc)
+		}
+	}
+	return p, nil
 }
 
 func processes() ([]Process, error) {
