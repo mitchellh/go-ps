@@ -78,7 +78,7 @@ func (p *UnixProcess) Refresh() error {
 		&p.pgrp,
 		&p.sid)
 
-	f, err := os.Open("/proc/%d/task")
+	f, err := os.Open(fmt.Sprintf("/proc/%d/task", p.pid))
 	if err != nil {
 		return err
 	}
