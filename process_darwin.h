@@ -6,6 +6,8 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <sys/sysctl.h>
+#include <sys/proc_info.h>
+#include <libproc.h>
 
 // This is declared in process_darwin.go
 extern void go_darwin_append_proc(pid_t, pid_t, char *);
@@ -17,7 +19,7 @@ extern void go_darwin_append_proc(pid_t, pid_t, char *);
 // be possible to do this all in Go, I didn't want to go spelunking through
 // header files to get all the structures properly. It is much easier to just
 // call it in C and be done with it.
-static inline int darwinProcesses() {
+static inline int darwinProcesses0() {
     int err = 0;
     int i = 0;
     static const int name[] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0 };
@@ -63,4 +65,26 @@ ERREXIT:
     return 0;
 }
 
+static inline int darwinProcesses() {
+
+    int numberOfProcesses = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0);
+    pid_t pids[1024];
+    bzero(pids, 1024);
+    proc_listpids(PROC_ALL_PIDS, 0, pids, sizeof(pids));
+    for (int i=0; i<numberOfProcesses; ++i) {
+        if (pids[i] == 0) { continue; }
+        char pathBuffer[PROC_PIDPATHINFO_MAXSIZE];
+        bzero(pathBuffer, PROC_PIDPATHINFO_MAXSIZE);
+        proc_pidpath(pids[i], pathBuffer, sizeof(pathBuffer));
+        if (strlen(pathBuffer) > 0) {
+            printf("path: %s\n", pathBuffer);
+            go_darwin_append_proc(
+                    pids[i],
+                    0,
+                    pathBuffer);
+        }
+    }
+
+    return 0;
+}
 #endif
