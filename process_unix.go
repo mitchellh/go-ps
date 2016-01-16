@@ -4,6 +4,7 @@ package ps
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -58,10 +59,19 @@ func (p *UnixProcess) Refresh() error {
 	if err != nil {
 		return err
 	}
-
-	if ind := bytes.IndexRune(data, ' '); ind >= 0 {
-		data = data[:bytes.IndexRune(data, ' ')]
+	if len(data) == 0 {
+		return errors.New("empty name")
 	}
+
+	// Remove arguments
+	if ind := bytes.IndexRune(data, ' '); ind >= 0 {
+		data = data[:ind]
+	}
+	// Remove path to the executable
+	if ind := bytes.LastIndexByte(data, '/'); ind >= 0 {
+		data = data[ind+1:]
+	}
+
 	p.binary = string(data)
 
 	return nil
