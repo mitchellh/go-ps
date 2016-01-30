@@ -3,22 +3,23 @@
 package ps
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"strconv"
-	"strings"
 )
 
 // UnixProcess is an implementation of Process that contains Unix-specific
 // fields and information.
 type UnixProcess struct {
-	pid   int
-	ppid  int
-	state rune
-	pgrp  int
-	sid   int
+	pid  int
+	ppid int
+	//state rune
+	//pgrp  int
+	//sid   int
 
 	binary string
 }
@@ -37,28 +38,46 @@ func (p *UnixProcess) Executable() string {
 
 // Refresh reloads all the data associated with this process.
 func (p *UnixProcess) Refresh() error {
-	statPath := fmt.Sprintf("/proc/%d/stat", p.pid)
-	dataBytes, err := ioutil.ReadFile(statPath)
+	var (
+		procPath = fmt.Sprintf("/proc/%d/", p.pid)
+		data     []byte
+		err      error
+	)
+
+	data, err = ioutil.ReadFile(procPath + "stat")
 	if err != nil {
 		return err
 	}
 
-	// First, parse out the image name
-	data := string(dataBytes)
-	binStart := strings.IndexRune(data, '(') + 1
-	binEnd := strings.IndexRune(data[binStart:], ')')
-	p.binary = data[binStart : binStart+binEnd]
+	data = data[bytes.IndexRune(data, ')')+2:]
+	_, err = fmt.Fscanf(bytes.NewReader(data), "%c %d", new(rune), &p.ppid)
+	if err != nil {
+		return err
+	}
 
-	// Move past the image name and start parsing the rest
-	data = data[binStart+binEnd+2:]
-	_, err = fmt.Sscanf(data,
-		"%c %d %d %d",
-		&p.state,
-		&p.ppid,
-		&p.pgrp,
-		&p.sid)
+	data, err = ioutil.ReadFile(procPath + "cmdline")
+	if err != nil {
+		return err
+	}
+	if len(data) == 0 {
+		return errors.New("empty name")
+	}
 
-	return err
+	// Remove arguments
+	if ind := bytes.IndexByte(data, 0); ind >= 0 {
+		data = data[:ind]
+	}
+	if ind := bytes.IndexByte(data, ' '); ind >= 0 {
+		data = data[:ind]
+	}
+	// Remove path to the executable
+	if ind := bytes.LastIndexByte(data, '/'); ind >= 0 {
+		data = data[ind+1:]
+	}
+
+	p.binary = string(data)
+
+	return nil
 }
 
 func findProcess(pid int) (Process, error) {
