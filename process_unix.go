@@ -64,7 +64,10 @@ func (p *UnixProcess) Refresh() error {
 	}
 
 	// Remove arguments
-	if ind := bytes.IndexRune(data, ' '); ind >= 0 {
+	if ind := bytes.IndexByte(data, 0); ind >= 0 {
+		data = data[:ind]
+	}
+	if ind := bytes.IndexByte(data, ' '); ind >= 0 {
 		data = data[:ind]
 	}
 	// Remove path to the executable
