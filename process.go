@@ -19,6 +19,10 @@ type Process interface {
 	// Executable name running this process. This is not a path to the
 	// executable.
 	Executable() string
+
+	// Args contain the arguments passed along with the executable name
+	// for this process.
+	Args() string
 }
 
 // Processes returns all processes.

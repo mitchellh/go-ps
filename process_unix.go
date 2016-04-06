@@ -3,6 +3,7 @@
 package ps
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -21,7 +22,10 @@ type UnixProcess struct {
 	sid   int
 
 	binary string
+	args   string
 }
+
+var _ Process = &UnixProcess{}
 
 func (p *UnixProcess) Pid() int {
 	return p.pid
@@ -33,6 +37,10 @@ func (p *UnixProcess) PPid() int {
 
 func (p *UnixProcess) Executable() string {
 	return p.binary
+}
+
+func (p *UnixProcess) Args() string {
+	return p.args
 }
 
 // Refresh reloads all the data associated with this process.
@@ -47,7 +55,6 @@ func (p *UnixProcess) Refresh() error {
 	data := string(dataBytes)
 	binStart := strings.IndexRune(data, '(') + 1
 	binEnd := strings.IndexRune(data[binStart:], ')')
-	p.binary = data[binStart : binStart+binEnd]
 
 	// Move past the image name and start parsing the rest
 	data = data[binStart+binEnd+2:]
@@ -58,7 +65,26 @@ func (p *UnixProcess) Refresh() error {
 		&p.pgrp,
 		&p.sid)
 
-	return err
+	cmdlinePath := fmt.Sprintf("/proc/%d/cmdline", p.pid)
+	cmdBytes, err := ioutil.ReadFile(cmdlinePath)
+	if err != nil {
+		return err
+	}
+
+	// The cmdline contains NUL chars between the executable and the args
+	// and between every other args as well.
+	execArgs := bytes.SplitN(cmdBytes, []byte{'\x00'}, 2)
+
+	// The binary name has to be pulled from the cmdline. The version in /proc/<pid>/stat
+	// is a truncated version of the executable for large names and will show an incomplete
+	// name.
+	p.binary = string(execArgs[0])
+
+	if len(execArgs) > 1 {
+		p.args = string(execArgs[1])
+	}
+
+	return nil
 }
 
 func findProcess(pid int) (Process, error) {

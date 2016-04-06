@@ -125,6 +125,10 @@ func (p *UnixProcess) Executable() string {
 	return p.binary
 }
 
+func (p *UnixProcess) Args() string {
+	return ""
+}
+
 // Refresh reloads all the data associated with this process.
 func (p *UnixProcess) Refresh() error {
 
