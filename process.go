@@ -7,6 +7,10 @@
 // are interested.
 package ps
 
+import (
+	"time"
+)
+
 // Process is the generic interface that is implemented on every platform
 // and provides common operations for processes.
 type Process interface {
@@ -19,6 +23,9 @@ type Process interface {
 	// Executable name running this process. This is not a path to the
 	// executable.
 	Executable() string
+
+	// Time at which the process was created.
+	CreationTime() time.Time
 }
 
 // Processes returns all processes.

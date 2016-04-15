@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // UnixProcess is an implementation of Process that contains Unix-specific
@@ -21,6 +22,8 @@ type UnixProcess struct {
 	sid   int
 
 	binary string
+
+	ctime  time.Time
 }
 
 func (p *UnixProcess) Pid() int {
@@ -33,6 +36,10 @@ func (p *UnixProcess) PPid() int {
 
 func (p *UnixProcess) Executable() string {
 	return p.binary
+}
+
+func (p *UnixProcess) CreationTime() time.Time {
+	return p.ctime
 }
 
 // Refresh reloads all the data associated with this process.
