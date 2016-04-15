@@ -7,6 +7,7 @@ import "C"
 
 import (
 	"sync"
+	"time"
 )
 
 // This lock is what verifies that C calling back into Go is only
@@ -18,6 +19,7 @@ type DarwinProcess struct {
 	pid    int
 	ppid   int
 	binary string
+	ctime  time.Time
 }
 
 func (p *DarwinProcess) Pid() int {
@@ -30,6 +32,10 @@ func (p *DarwinProcess) PPid() int {
 
 func (p *DarwinProcess) Executable() string {
 	return p.binary
+}
+
+func (p *DarwinProcess) CreationTime() time.Time {
+	return p.ctime
 }
 
 //export go_darwin_append_proc
