@@ -2,12 +2,15 @@
 
 package ps
 
-// #include "process_darwin.h"
+/*
+#include <stdio.h>
+#include <errno.h>
+#include <libproc.h>
+extern void darwinProcesses();
+*/
 import "C"
 
-import (
-	"sync"
-)
+import "sync"
 
 // This lock is what verifies that C calling back into Go is only
 // modifying data once at a time.
@@ -39,7 +42,6 @@ func go_darwin_append_proc(pid C.pid_t, ppid C.pid_t, comm *C.char) {
 		ppid:   int(ppid),
 		binary: C.GoString(comm),
 	}
-
 	darwinProcs = append(darwinProcs, proc)
 }
 
@@ -63,10 +65,7 @@ func processes() ([]Process, error) {
 	defer darwinLock.Unlock()
 	darwinProcs = make([]Process, 0, 50)
 
-	_, err := C.darwinProcesses()
-	if err != nil {
-		return nil, err
-	}
+	C.darwinProcesses()
 
 	return darwinProcs, nil
 }

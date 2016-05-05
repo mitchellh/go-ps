@@ -2,6 +2,7 @@ package ps
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -33,7 +34,7 @@ func TestProcesses(t *testing.T) {
 
 	found := false
 	for _, p1 := range p {
-		if p1.Executable() == "go" || p1.Executable() == "go.exe" {
+		if strings.HasSuffix(p1.Executable(), "/go") || p1.Executable() == "go" || p1.Executable() == "go.exe" {
 			found = true
 			break
 		}

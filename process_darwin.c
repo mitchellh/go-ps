@@ -1,8 +1,5 @@
 // +build darwin
 
-#ifndef _GO_PROCESSDARWIN_H_INCLUDED
-#define _GO_PROCESSDARWIN_H_INCLUDED
-
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,7 +18,7 @@ extern void go_darwin_append_proc(pid_t, pid_t, char *);
 // header files to get all the structures properly. It is much easier to just
 // call it in C and be done with it.
 
-static inline int darwinProcesses() {
+void darwinProcesses() {
 
   uid_t euid = geteuid();
 
@@ -54,7 +51,4 @@ static inline int darwinProcesses() {
     }
   }
   free(pids);
-
-  return 0;
 }
-#endif
