@@ -2,6 +2,7 @@ package ps
 
 import (
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -17,6 +18,22 @@ func TestFindProcess(t *testing.T) {
 
 	if p.Pid() != os.Getpid() {
 		t.Fatalf("bad: %#v", p.Pid())
+	}
+
+	path, err := p.Path()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Path: %s", path)
+	switch runtime.GOOS {
+	case "darwin":
+		if !strings.HasSuffix(path, "/go-ps.test") {
+			t.Fatalf("Invalid path: %s", path)
+		}
+	case "windows":
+		if !strings.HasSuffix(path, `\go-ps.test.exe`) {
+			t.Fatalf("Invalid path: %s", path)
+		}
 	}
 }
 
@@ -34,7 +51,7 @@ func TestProcesses(t *testing.T) {
 
 	found := false
 	for _, p1 := range p {
-		if strings.HasSuffix(p1.Executable(), "/go") || p1.Executable() == "go" || p1.Executable() == "go.exe" {
+		if p1.Executable() == "go" || p1.Executable() == "go.exe" {
 			found = true
 			break
 		}

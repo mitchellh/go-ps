@@ -5,6 +5,7 @@ package ps
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"syscall"
 	"unsafe"
 )
@@ -123,6 +124,10 @@ func (p *UnixProcess) PPid() int {
 
 func (p *UnixProcess) Executable() string {
 	return p.binary
+}
+
+func (p *UnixProcess) Path() (string, error) {
+	return "", fmt.Errorf("Unsupported")
 }
 
 // Refresh reloads all the data associated with this process.

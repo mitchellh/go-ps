@@ -15,16 +15,17 @@ var (
 	procCreateToolhelp32Snapshot = modKernel32.NewProc("CreateToolhelp32Snapshot")
 	procProcess32First           = modKernel32.NewProc("Process32FirstW")
 	procProcess32Next            = modKernel32.NewProc("Process32NextW")
+	procModule32First            = modKernel32.NewProc("Module32FirstW")
+	procModule32Next             = modKernel32.NewProc("Module32NextW")
 )
 
 // Some constants from the Windows API
 const (
 	ERROR_NO_MORE_FILES = 0x12
 	MAX_PATH            = 260
+	MAX_MODULE_NAME32   = 255
 )
 
-// PROCESSENTRY32 is the Windows API structure that contains a process's
-// information.
 type PROCESSENTRY32 struct {
 	Size              uint32
 	CntUsage          uint32
@@ -57,20 +58,32 @@ func (p *WindowsProcess) Executable() string {
 	return p.exe
 }
 
-func newWindowsProcess(e *PROCESSENTRY32) *WindowsProcess {
-	// Find when the string ends for decoding
-	end := 0
-	for {
-		if e.ExeFile[end] == 0 {
-			break
-		}
-		end++
+func (p *WindowsProcess) Path() (string, error) {
+	processModules, err := modules(p.pid)
+	if err != nil {
+		return "", err
 	}
+	if len(processModules) == 0 {
+		return "", fmt.Errorf("No modules found for process")
+	}
+	return processModules[0].path, nil
+}
 
+func ptrToString(c []uint16) string {
+	i := 0
+	for {
+		if c[i] == 0 {
+			return syscall.UTF16ToString(c[:i])
+		}
+		i++
+	}
+}
+
+func newWindowsProcess(e *PROCESSENTRY32) *WindowsProcess {
 	return &WindowsProcess{
 		pid:  int(e.ProcessID),
 		ppid: int(e.ParentProcessID),
-		exe:  syscall.UTF16ToString(e.ExeFile[:end]),
+		exe:  ptrToString(e.ExeFile[:]),
 	}
 }
 
@@ -110,6 +123,62 @@ func processes() ([]Process, error) {
 		results = append(results, newWindowsProcess(&entry))
 
 		ret, _, _ := procProcess32Next.Call(handle, uintptr(unsafe.Pointer(&entry)))
+		if ret == 0 {
+			break
+		}
+	}
+
+	return results, nil
+}
+
+// MODULEENTRY32 is the Windows API structure that contains a modules's
+// information.
+type MODULEENTRY32 struct {
+	Size         uint32
+	ModuleID     uint32
+	ProcessID    uint32
+	GlblcntUsage uint32
+	ProccntUsage uint32
+	ModBaseAddr  *uint8
+	ModBaseSize  uint32
+	HModule      uintptr
+	SzModule     [MAX_MODULE_NAME32 + 1]uint16
+	SzExePath    [MAX_PATH]uint16
+}
+
+type windowsModule struct {
+	name string
+	path string
+}
+
+func newWindowsModule(e *MODULEENTRY32) windowsModule {
+	return windowsModule{
+		name: ptrToString(e.SzModule[:]),
+		path: ptrToString(e.SzExePath[:]),
+	}
+}
+
+func modules(pid int) ([]windowsModule, error) {
+	handle, _, _ := procCreateToolhelp32Snapshot.Call(
+		0x00000008, // TH32CS_SNAPMODULE
+		uintptr(uint32(pid)))
+	if handle < 0 {
+		return nil, syscall.GetLastError()
+	}
+	defer procCloseHandle.Call(handle)
+
+	var entry MODULEENTRY32
+	entry.Size = uint32(unsafe.Sizeof(entry))
+	ret, _, _ := procModule32First.Call(handle, uintptr(unsafe.Pointer(&entry)))
+	if ret == 0 {
+		return nil, fmt.Errorf("Error retrieving module info")
+	}
+
+	results := make([]windowsModule, 0, 50)
+	for {
+		results = append(results, newWindowsModule(&entry))
+
+		ret, _, _ := procModule32Next.Call(handle, uintptr(unsafe.Pointer(&entry)))
 		if ret == 0 {
 			break
 		}

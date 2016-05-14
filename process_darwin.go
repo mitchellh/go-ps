@@ -10,7 +10,10 @@ extern void darwinProcesses();
 */
 import "C"
 
-import "sync"
+import (
+	"path/filepath"
+	"sync"
+)
 
 // This lock is what verifies that C calling back into Go is only
 // modifying data once at a time.
@@ -18,9 +21,9 @@ var darwinLock sync.Mutex
 var darwinProcs []Process
 
 type DarwinProcess struct {
-	pid    int
-	ppid   int
-	binary string
+	pid  int
+	ppid int
+	path string
 }
 
 func (p *DarwinProcess) Pid() int {
@@ -32,15 +35,19 @@ func (p *DarwinProcess) PPid() int {
 }
 
 func (p *DarwinProcess) Executable() string {
-	return p.binary
+	return filepath.Base(p.path)
+}
+
+func (p *DarwinProcess) Path() (string, error) {
+	return p.path, nil
 }
 
 //export go_darwin_append_proc
 func go_darwin_append_proc(pid C.pid_t, ppid C.pid_t, comm *C.char) {
 	proc := &DarwinProcess{
-		pid:    int(pid),
-		ppid:   int(ppid),
-		binary: C.GoString(comm),
+		pid:  int(pid),
+		ppid: int(ppid),
+		path: C.GoString(comm),
 	}
 	darwinProcs = append(darwinProcs, proc)
 }
