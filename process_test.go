@@ -2,6 +2,7 @@ package ps
 
 import (
 	"os"
+	"path"
 	"testing"
 )
 
@@ -33,7 +34,7 @@ func TestProcesses(t *testing.T) {
 
 	found := false
 	for _, p1 := range p {
-		if p1.Executable() == "go" || p1.Executable() == "go.exe" {
+		if path.Base(p1.Executable()) == "go" || path.Base(p1.Executable()) == "go.exe" {
 			found = true
 			break
 		}

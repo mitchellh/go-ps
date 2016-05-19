@@ -58,6 +58,12 @@ func (p *UnixProcess) Refresh() error {
 		&p.pgrp,
 		&p.sid)
 
+	// Optionally try to resolve the binary to a full path (Linux 2.2+)
+	exePath := fmt.Sprintf("/proc/%d/exe", p.pid)
+	if fullPath, err := os.Readlink(exePath); err == nil {
+		p.binary = fullPath
+	}
+
 	return err
 }
 
