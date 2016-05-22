@@ -92,9 +92,13 @@ func newWindowsProcess(e *PROCESSENTRY32) *WindowsProcess {
 }
 
 func findProcess(pid int) (Process, error) {
-	ps, err := processes()
+	return findProcessWithFn(processes, pid)
+}
+
+func findProcessWithFn(processesFn processesFn, pid int) (Process, error) {
+	ps, err := processesFn()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error listing processes: %s", err)
 	}
 
 	for _, p := range ps {

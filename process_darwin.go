@@ -11,6 +11,7 @@ extern void darwinProcesses();
 import "C"
 
 import (
+	"fmt"
 	"path/filepath"
 	"sync"
 )
@@ -58,9 +59,13 @@ func goDarwinAppendProc(pid C.pid_t, ppid C.pid_t, comm *C.char) {
 }
 
 func findProcess(pid int) (Process, error) {
-	ps, err := processes()
+	return findProcessWithFn(processes, pid)
+}
+
+func findProcessWithFn(processesFn processesFn, pid int) (Process, error) {
+	ps, err := processesFn()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error listing processes: %s", err)
 	}
 
 	for _, p := range ps {

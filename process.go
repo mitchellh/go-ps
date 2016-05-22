@@ -24,6 +24,8 @@ type Process interface {
 	Path() (string, error)
 }
 
+type processesFn func() ([]Process, error)
+
 // Processes returns all processes.
 //
 // This of course will be a point-in-time snapshot of when this method was

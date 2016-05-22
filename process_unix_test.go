@@ -2,9 +2,7 @@
 
 package ps
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestUnixProcess(t *testing.T) {
 	var _ Process = new(UnixProcess)
