@@ -19,6 +19,8 @@ after_build:
 build_script:
   - go version
   - go build
+  - go get github.com/stretchr/testify/assert
+  - go get github.com/stretchr/testify/require
   - go test -short -v
   - go test -short -race -v
 

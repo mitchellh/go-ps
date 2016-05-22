@@ -2,10 +2,12 @@
 
 package ps
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestDarwinProcess_impl(t *testing.T) {
-	var _ Process = new(DarwinProcess)
+func TestFindProcessDarwin(t *testing.T) {
+	testFindProcess(t, "go-ps.test")
+}
+
+func TestProcessesWindows(t *testing.T) {
+	testProcesses(t, "go")
 }
