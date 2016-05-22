@@ -46,18 +46,22 @@ type WindowsProcess struct {
 	exe  string
 }
 
+// Pid returns process id
 func (p *WindowsProcess) Pid() int {
 	return p.pid
 }
 
+// PPid returns parent process id
 func (p *WindowsProcess) PPid() int {
 	return p.ppid
 }
 
+// Executable returns process executable name
 func (p *WindowsProcess) Executable() string {
 	return p.exe
 }
 
+// Path returns path to process executable
 func (p *WindowsProcess) Path() (string, error) {
 	processModules, err := modules(p.pid)
 	if err != nil {

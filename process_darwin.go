@@ -20,30 +20,35 @@ import (
 var darwinLock sync.Mutex
 var darwinProcs []Process
 
+// DarwinProcess is process definition for OS X
 type DarwinProcess struct {
 	pid  int
 	ppid int
 	path string
 }
 
+// Pid returns process id
 func (p *DarwinProcess) Pid() int {
 	return p.pid
 }
 
+// PPid returns parent process id
 func (p *DarwinProcess) PPid() int {
 	return p.ppid
 }
 
+// Executable returns process executable name
 func (p *DarwinProcess) Executable() string {
 	return filepath.Base(p.path)
 }
 
+// Path returns path to process executable
 func (p *DarwinProcess) Path() (string, error) {
 	return p.path, nil
 }
 
-//export go_darwin_append_proc
-func go_darwin_append_proc(pid C.pid_t, ppid C.pid_t, comm *C.char) {
+//export goDarwinAppendProc
+func goDarwinAppendProc(pid C.pid_t, ppid C.pid_t, comm *C.char) {
 	proc := &DarwinProcess{
 		pid:  int(pid),
 		ppid: int(ppid),
@@ -71,6 +76,9 @@ func processes() ([]Process, error) {
 	darwinLock.Lock()
 	defer darwinLock.Unlock()
 	darwinProcs = make([]Process, 0, 50)
+
+	// To ignore deadcode warning for goDarwinAppendProc
+	_ = goDarwinAppendProc
 
 	C.darwinProcesses()
 

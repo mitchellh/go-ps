@@ -1,5 +1,5 @@
-// ps provides an API for finding and listing processes in a platform-agnostic
-// way.
+// Package ps provides an API for finding and listing processes in a
+// platform-agnostic way.
 //
 // NOTE: If you're reading these docs online via GoDocs or some other system,
 // you might only see the Unix docs. This project makes heavy use of

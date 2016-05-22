@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 // This is declared in process_darwin.go
-extern void go_darwin_append_proc(pid_t, pid_t, char *);
+extern void goDarwinAppendProc(pid_t, pid_t, char *);
 
 // Loads the process table and calls the exported Go function to insert
 // the data back into the Go space.
@@ -47,7 +47,7 @@ void darwinProcesses() {
 
     bzero(path_buffer, PROC_PIDPATHINFO_MAXSIZE);
     if (proc_pidpath(pids[i], path_buffer, sizeof(path_buffer)) > 0) {
-      go_darwin_append_proc(pids[i], ppid, path_buffer);
+      goDarwinAppendProc(pids[i], ppid, path_buffer);
     }
   }
   free(pids);
