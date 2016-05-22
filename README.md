@@ -1,6 +1,7 @@
 # Process List Library for Go
 
 [![Build Status](https://travis-ci.org/keybase/go-ps.svg?branch=master)](https://travis-ci.org/keybase/go-ps)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/keybase/go-ps?branch=master&svg=true)](https://ci.appveyor.com/project/keybase/go-ps)
 [![Coverage Status](https://coveralls.io/repos/github/keybase/go-ps/badge.svg?branch=master)](https://coveralls.io/github/keybase/go-ps?branch=master)
 [![GoDoc](https://godoc.org/github.com/keybase/go-ps?status.svg)](https://godoc.org/github.com/keybase/go-ps)
 
