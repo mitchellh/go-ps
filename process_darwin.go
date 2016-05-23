@@ -6,13 +6,13 @@ package ps
 #include <stdio.h>
 #include <errno.h>
 #include <libproc.h>
-extern void darwinProcesses();
+extern int darwinProcesses();
+extern void darwinProcessPaths();
 */
 import "C"
 
 import (
 	"fmt"
-	"path/filepath"
 	"sync"
 )
 
@@ -20,11 +20,13 @@ import (
 // modifying data once at a time.
 var darwinLock sync.Mutex
 var darwinProcs []Process
+var darwinProcsByPID map[int]*DarwinProcess
 
 // DarwinProcess is process definition for OS X
 type DarwinProcess struct {
 	pid  int
 	ppid int
+	name string
 	path string
 }
 
@@ -40,7 +42,7 @@ func (p *DarwinProcess) PPid() int {
 
 // Executable returns process executable name
 func (p *DarwinProcess) Executable() string {
-	return filepath.Base(p.path)
+	return p.name
 }
 
 // Path returns path to process executable
@@ -53,9 +55,17 @@ func goDarwinAppendProc(pid C.pid_t, ppid C.pid_t, comm *C.char) {
 	proc := &DarwinProcess{
 		pid:  int(pid),
 		ppid: int(ppid),
-		path: C.GoString(comm),
+		name: C.GoString(comm),
 	}
 	darwinProcs = append(darwinProcs, proc)
+	darwinProcsByPID[proc.pid] = proc
+}
+
+//export goDarwinSetPath
+func goDarwinSetPath(pid C.pid_t, comm *C.char) {
+	if proc, ok := darwinProcsByPID[int(pid)]; ok && proc != nil {
+		proc.path = C.GoString(comm)
+	}
 }
 
 func findProcess(pid int) (Process, error) {
@@ -81,11 +91,18 @@ func processes() ([]Process, error) {
 	darwinLock.Lock()
 	defer darwinLock.Unlock()
 	darwinProcs = make([]Process, 0, 50)
+	darwinProcsByPID = make(map[int]*DarwinProcess)
 
-	// To ignore deadcode warning for goDarwinAppendProc
+	// To ignore deadcode warnings for exported functions
 	_ = goDarwinAppendProc
+	_ = goDarwinSetPath
 
-	C.darwinProcesses()
+	_, err := C.darwinProcesses()
+	if err != nil {
+		return nil, err
+	}
+
+	C.darwinProcessPaths()
 
 	return darwinProcs, nil
 }

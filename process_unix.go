@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -40,7 +41,7 @@ func (p *UnixProcess) Executable() string {
 
 // Path returns path to process executable
 func (p *UnixProcess) Path() (string, error) {
-	return "", fmt.Errorf("Unsupported")
+	return filepath.EvalSymlinks(fmt.Sprintf("/proc/%d/exe", p.pid))
 }
 
 // Refresh reloads all the data associated with this process.
