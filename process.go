@@ -40,9 +40,9 @@ func Processes() ([]Process, error) {
 }
 
 // FindProcess looks up a single process by pid.
-//
-// Process will be nil and error will be nil if a matching process is
-// not found.
+// This may require a full process listing depending on the platform, so
+// consider using os.FindProcess instead.
+// Process will be nil and error will be nil if a matching process is not found.
 func FindProcess(pid int) (Process, error) {
 	return findProcess(pid)
 }
