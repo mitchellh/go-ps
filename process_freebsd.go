@@ -5,6 +5,7 @@ package ps
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"syscall"
 	"unsafe"
 )
@@ -113,16 +114,24 @@ type UnixProcess struct {
 	binary string
 }
 
+// Pid returns process id
 func (p *UnixProcess) Pid() int {
 	return p.pid
 }
 
+// PPid returns parent process id
 func (p *UnixProcess) PPid() int {
 	return p.ppid
 }
 
+// Executable returns process executable name
 func (p *UnixProcess) Executable() string {
 	return p.binary
+}
+
+// Path returns path to process executable
+func (p *UnixProcess) Path() (string, error) {
+	return "", fmt.Errorf("Unsupported")
 }
 
 // Refresh reloads all the data associated with this process.

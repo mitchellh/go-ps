@@ -2,10 +2,8 @@
 
 package ps
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestUnixProcess_impl(t *testing.T) {
+func TestUnixProcess(t *testing.T) {
 	var _ Process = new(UnixProcess)
 }

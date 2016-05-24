@@ -1,23 +1,25 @@
 // +build darwin
 
-#ifndef _GO_PROCESSDARWIN_H_INCLUDED
-#define _GO_PROCESSDARWIN_H_INCLUDED
-
 #include <errno.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <strings.h>
+#include <libproc.h>
+#include <unistd.h>
 #include <sys/sysctl.h>
 
 // This is declared in process_darwin.go
-extern void go_darwin_append_proc(pid_t, pid_t, char *);
+extern void goDarwinAppendProc(pid_t, pid_t, char *);
+extern void goDarwinSetPath(pid_t, char *);
 
-// Loads the process table and calls the exported Go function to insert
-// the data back into the Go space.
+// darwinProcesses loads the process table and calls the exported Go function to
+// insert the data back into the Go space.
 //
 // This function is implemented in C because while it would technically
 // be possible to do this all in Go, I didn't want to go spelunking through
 // header files to get all the structures properly. It is much easier to just
 // call it in C and be done with it.
-static inline int darwinProcesses() {
+int darwinProcesses() {
     int err = 0;
     int i = 0;
     static const int name[] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0 };
@@ -46,7 +48,7 @@ static inline int darwinProcesses() {
     resultCount = length / sizeof(struct kinfo_proc);
     for (i = 0; i < resultCount; i++) {
         struct kinfo_proc *single = &result[i];
-        go_darwin_append_proc(
+        goDarwinAppendProc(
                 single->kp_proc.p_pid,
                 single->kp_eproc.e_ppid,
                 single->kp_proc.p_comm);
@@ -63,4 +65,23 @@ ERREXIT:
     return 0;
 }
 
-#endif
+// darwinProcessPaths looks up paths for process pids
+void darwinProcessPaths() {
+  int pid_buf_size = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0);
+  int pid_count = pid_buf_size / sizeof(pid_t);
+
+  pid_t* pids = malloc(pid_buf_size);
+  bzero(pids, pid_buf_size);
+
+  proc_listpids(PROC_ALL_PIDS, 0, pids, pid_buf_size);
+  char path_buffer[PROC_PIDPATHINFO_MAXSIZE];
+
+  for (int i=0; i < pid_count; i++) {
+    if (pids[i] == 0) break;
+    bzero(path_buffer, PROC_PIDPATHINFO_MAXSIZE);
+    if (proc_pidpath(pids[i], path_buffer, sizeof(path_buffer)) > 0) {
+      goDarwinSetPath(pids[i], path_buffer);
+    }
+  }
+  free(pids);
+}
