@@ -97,11 +97,9 @@ func processes() ([]Process, error) {
 	_ = goDarwinAppendProc
 	_ = goDarwinSetPath
 
-	_, err := C.darwinProcesses()
-	if err != nil {
-		return nil, err
-	}
-
+	// TODO: Investigate why darwinProcesses returns error even if process list
+	// succeeds
+	C.darwinProcesses()
 	C.darwinProcessPaths()
 
 	return darwinProcs, nil
