@@ -2,17 +2,19 @@
 
 package ps
 
-// #include "process_darwin.h"
-import "C"
-
 import (
-	"sync"
+	"bytes"
+	"encoding/binary"
+	"syscall"
+	"unsafe"
 )
 
-// This lock is what verifies that C calling back into Go is only
-// modifying data once at a time.
-var darwinLock sync.Mutex
-var darwinProcs []Process
+const (
+	_CTRL_KERN         = 1
+	_KERN_PROC         = 14
+	_KERN_PROC_ALL     = 0
+	_KINFO_STRUCT_SIZE = 648
+)
 
 type DarwinProcess struct {
 	pid    int
@@ -32,15 +34,14 @@ func (p *DarwinProcess) Executable() string {
 	return p.binary
 }
 
-//export go_darwin_append_proc
-func go_darwin_append_proc(pid C.pid_t, ppid C.pid_t, comm *C.char) {
-	proc := &DarwinProcess{
-		pid:    int(pid),
-		ppid:   int(ppid),
-		binary: C.GoString(comm),
-	}
-
-	darwinProcs = append(darwinProcs, proc)
+type kinfoProc struct {
+	_    [40]byte
+	pid  int32
+	_    [199]byte
+	comm [16]byte
+	_    [301]byte
+	ppid int32
+	_    [84]byte
 }
 
 func findProcess(pid int) (Process, error) {
@@ -59,14 +60,84 @@ func findProcess(pid int) (Process, error) {
 }
 
 func processes() ([]Process, error) {
-	darwinLock.Lock()
-	defer darwinLock.Unlock()
-	darwinProcs = make([]Process, 0, 50)
 
-	_, err := C.darwinProcesses()
+	buf, err := darwinSyscall()
 	if err != nil {
 		return nil, err
 	}
 
+	procs := make([]*kinfoProc, 0, 50)
+	k := 0
+	for i := _KINFO_STRUCT_SIZE; i < buf.Len(); i += _KINFO_STRUCT_SIZE {
+		proc := &kinfoProc{}
+		err = binary.Read(bytes.NewBuffer(buf.Bytes()[k:i]), binary.LittleEndian, proc)
+		if err != nil {
+			return nil, err
+		}
+		k = i
+		procs = append(procs, proc)
+	}
+
+	darwinProcs := make([]Process, len(procs))
+	for i, p := range procs {
+		darwinProcs[i] = &DarwinProcess{
+			pid:    int(p.pid),
+			ppid:   int(p.ppid),
+			binary: darwinCstring(p.comm),
+		}
+	}
+
 	return darwinProcs, nil
+}
+
+func darwinCstring(s [16]byte) string {
+
+	i := 0
+	for _, b := range s {
+		if b != 0 {
+			i++
+		} else {
+			break
+		}
+	}
+
+	return string(s[:i])
+}
+
+func darwinSyscall() (buf *bytes.Buffer, err error) {
+
+	mib := [4]int32{_CTRL_KERN, _KERN_PROC, _KERN_PROC_ALL, 0}
+	size := uintptr(0)
+
+	_, _, errno := syscall.Syscall6(
+		syscall.SYS___SYSCTL,
+		uintptr(unsafe.Pointer(&mib[0])),
+		4,
+		0,
+		uintptr(unsafe.Pointer(&size)),
+		0,
+		0)
+
+	if errno != 0 {
+		err = errno
+		return
+	}
+
+	bs := make([]byte, size)
+	_, _, errno = syscall.Syscall6(
+		syscall.SYS___SYSCTL,
+		uintptr(unsafe.Pointer(&mib[0])),
+		4,
+		uintptr(unsafe.Pointer(&bs[0])),
+		uintptr(unsafe.Pointer(&size)),
+		0,
+		0)
+
+	if errno != 0 {
+		err = errno
+		return
+	}
+
+	buf = bytes.NewBuffer(bs[0:size])
+	return
 }
