@@ -36,11 +36,11 @@ func (p *DarwinProcess) Executable() string {
 
 type kinfoProc struct {
 	_    [40]byte
-	pid  int32
+	Pid  int32
 	_    [199]byte
-	comm [16]byte
+	Comm [16]byte
 	_    [301]byte
-	ppid int32
+	PPid int32
 	_    [84]byte
 }
 
@@ -81,9 +81,9 @@ func processes() ([]Process, error) {
 	darwinProcs := make([]Process, len(procs))
 	for i, p := range procs {
 		darwinProcs[i] = &DarwinProcess{
-			pid:    int(p.pid),
-			ppid:   int(p.ppid),
-			binary: darwinCstring(p.comm),
+			pid:    int(p.Pid),
+			ppid:   int(p.PPid),
+			binary: darwinCstring(p.Comm),
 		}
 	}
 
