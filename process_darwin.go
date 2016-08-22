@@ -9,13 +9,6 @@ import (
 	"unsafe"
 )
 
-const (
-	_CTRL_KERN         = 1
-	_KERN_PROC         = 14
-	_KERN_PROC_ALL     = 0
-	_KINFO_STRUCT_SIZE = 648
-)
-
 type DarwinProcess struct {
 	pid    int
 	ppid   int
@@ -34,16 +27,6 @@ func (p *DarwinProcess) Executable() string {
 	return p.binary
 }
 
-type kinfoProc struct {
-	_    [40]byte
-	Pid  int32
-	_    [199]byte
-	Comm [16]byte
-	_    [301]byte
-	PPid int32
-	_    [84]byte
-}
-
 func findProcess(pid int) (Process, error) {
 	ps, err := processes()
 	if err != nil {
@@ -60,7 +43,6 @@ func findProcess(pid int) (Process, error) {
 }
 
 func processes() ([]Process, error) {
-
 	buf, err := darwinSyscall()
 	if err != nil {
 		return nil, err
@@ -74,6 +56,7 @@ func processes() ([]Process, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		k = i
 		procs = append(procs, proc)
 	}
@@ -91,7 +74,6 @@ func processes() ([]Process, error) {
 }
 
 func darwinCstring(s [16]byte) string {
-
 	i := 0
 	for _, b := range s {
 		if b != 0 {
@@ -104,8 +86,7 @@ func darwinCstring(s [16]byte) string {
 	return string(s[:i])
 }
 
-func darwinSyscall() (buf *bytes.Buffer, err error) {
-
+func darwinSyscall() (*bytes.Buffer, error) {
 	mib := [4]int32{_CTRL_KERN, _KERN_PROC, _KERN_PROC_ALL, 0}
 	size := uintptr(0)
 
@@ -119,8 +100,7 @@ func darwinSyscall() (buf *bytes.Buffer, err error) {
 		0)
 
 	if errno != 0 {
-		err = errno
-		return
+		return nil, errno
 	}
 
 	bs := make([]byte, size)
@@ -134,10 +114,25 @@ func darwinSyscall() (buf *bytes.Buffer, err error) {
 		0)
 
 	if errno != 0 {
-		err = errno
-		return
+		return nil, errno
 	}
 
-	buf = bytes.NewBuffer(bs[0:size])
-	return
+	return bytes.NewBuffer(bs[0:size]), nil
+}
+
+const (
+	_CTRL_KERN         = 1
+	_KERN_PROC         = 14
+	_KERN_PROC_ALL     = 0
+	_KINFO_STRUCT_SIZE = 648
+)
+
+type kinfoProc struct {
+	_    [40]byte
+	Pid  int32
+	_    [199]byte
+	Comm [16]byte
+	_    [301]byte
+	PPid int32
+	_    [84]byte
 }
