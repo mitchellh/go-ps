@@ -32,4 +32,3 @@ implemented for this library that would be nice:
 
   * FreeBSD support
   * Plan9 support
-  * Eliminate the need for cgo with Darwin
