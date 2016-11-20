@@ -172,7 +172,7 @@ func findProcess(pid int) (Process, error) {
 	return newUnixProcess(pid)
 }
 
-func processes() ([]Process, error) {
+func processes(f func(Process) bool) ([]Process, error) {
 	results := make([]Process, 0, 50)
 
 	mib := []int32{CTL_KERN, KERN_PROC, KERN_PROC_PROC, 0}
@@ -198,6 +198,9 @@ func processes() ([]Process, error) {
 			continue
 		}
 		p.ppid, p.pgrp, p.sid, p.binary = copy_params(&k)
+		if f != nil && !f(p) {
+			continue
+		}
 
 		results = append(results, p)
 	}
