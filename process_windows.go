@@ -75,21 +75,26 @@ func newWindowsProcess(e *PROCESSENTRY32) *WindowsProcess {
 }
 
 func findProcess(pid int) (Process, error) {
-	ps, err := processes()
+	f := func(p Process) bool {
+		if p.Pid() == pid {
+			return true
+		}
+		return false
+	}
+	ps, err := FilterProcesses(f)
+
 	if err != nil {
 		return nil, err
 	}
 
-	for _, p := range ps {
-		if p.Pid() == pid {
-			return p, nil
-		}
+	if len(ps) == 0 {
+		return nil, nil
 	}
 
-	return nil, nil
+	return ps[0], nil
 }
 
-func processes() ([]Process, error) {
+func processes(f func(Process) bool) ([]Process, error) {
 	handle, _, _ := procCreateToolhelp32Snapshot.Call(
 		0x00000002,
 		0)
@@ -107,7 +112,10 @@ func processes() ([]Process, error) {
 
 	results := make([]Process, 0, 50)
 	for {
-		results = append(results, newWindowsProcess(&entry))
+		p := newWindowsProcess(&entry)
+		if f == nil || f(p) {
+			results = append(results, p)
+		}
 
 		ret, _, _ := procProcess32Next.Call(handle, uintptr(unsafe.Pointer(&entry)))
 		if ret == 0 {
