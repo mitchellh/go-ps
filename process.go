@@ -38,3 +38,11 @@ func Processes() ([]Process, error) {
 func FindProcess(pid int) (Process, error) {
 	return findProcess(pid)
 }
+
+// ActiveProcess looks up a single process by current active window.
+//
+// Process will be nil and error will be nil if a matching process is
+// not found.
+func ActiveProcess() (Process, error) {
+	return activeProcess()
+}

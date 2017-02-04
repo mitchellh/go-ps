@@ -11,10 +11,13 @@ import (
 // Windows API functions
 var (
 	modKernel32                  = syscall.NewLazyDLL("kernel32.dll")
+	modUser32                    = syscall.NewLazyDLL("user32.dll")
 	procCloseHandle              = modKernel32.NewProc("CloseHandle")
 	procCreateToolhelp32Snapshot = modKernel32.NewProc("CreateToolhelp32Snapshot")
 	procProcess32First           = modKernel32.NewProc("Process32FirstW")
 	procProcess32Next            = modKernel32.NewProc("Process32NextW")
+	procGetForegroundWindow      = modUser32.NewProc("GetForegroundWindow")
+	procGetWindowThreadProcessId = modUser32.NewProc("GetWindowThreadProcessId")
 )
 
 // Some constants from the Windows API
@@ -87,6 +90,15 @@ func findProcess(pid int) (Process, error) {
 	}
 
 	return nil, nil
+}
+
+func activeProcess() (Process, error) {
+	handle, _, _ := procGetForegroundWindow.Call()
+
+	pid := int(syscall.MAX_PATH)
+	procGetWindowThreadProcessId.Call(handle, uintptr(unsafe.Pointer(&pid)))
+
+	return findProcess(pid)
 }
 
 func processes() ([]Process, error) {
