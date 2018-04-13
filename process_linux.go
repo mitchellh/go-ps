@@ -19,7 +19,7 @@ func (p *UnixProcess) Refresh() error {
 	// First, parse out the image name
 	data := string(dataBytes)
 	binStart := strings.IndexRune(data, '(') + 1
-	binEnd := strings.IndexRune(data[binStart:], ')')
+	binEnd := strings.IndexRune(data[binStart:], ' ') - 1
 	p.binary = data[binStart : binStart+binEnd]
 
 	// Move past the image name and start parsing the rest
