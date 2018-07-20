@@ -33,3 +33,13 @@ func (p *UnixProcess) Refresh() error {
 
 	return err
 }
+
+// PGrp returns process group ID
+func (p *UnixProcess) PGrp() int {
+	return p.pgrp
+}
+
+// Sid returns process session ID
+func (p *UnixProcess) Sid() int {
+	return p.sid
+}
