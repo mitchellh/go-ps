@@ -5,6 +5,8 @@ package ps
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
+	"strconv"
 	"strings"
 )
 
@@ -32,4 +34,25 @@ func (p *UnixProcess) Refresh() error {
 		&p.sid)
 
 	return err
+}
+
+// Returns start time of process, in number of clock ticks after
+// system boot. See "man 5 proc" -> /proc/[pid]/stat -> field 22
+// for details
+func Starttime(pid int) (int, error) {
+	if exists, _ := findProcess(pid); exists != nil {
+		procStat, err := ioutil.ReadFile("/proc/" + strconv.Itoa(pid) + "/stat")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		statData := strings.Split(string(procStat), " ")
+		startTime, err := strconv.Atoi(statData[21])
+		if err != nil {
+			return 0, err
+		}
+
+		return startTime, nil
+	}
+	return 0, nil
 }
