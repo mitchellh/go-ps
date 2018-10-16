@@ -5,7 +5,6 @@ package ps
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -43,7 +42,7 @@ func Starttime(pid int) (int, error) {
 	if exists, _ := findProcess(pid); exists != nil {
 		procStat, err := ioutil.ReadFile("/proc/" + strconv.Itoa(pid) + "/stat")
 		if err != nil {
-			log.Fatal(err)
+			return 0, err
 		}
 
 		statData := strings.Split(string(procStat), " ")
