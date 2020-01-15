@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+
 )
 
 // Refresh reloads all the data associated with this process.
 func (p *UnixProcess) Refresh() error {
-	statPath := fmt.Sprintf("/proc/%d/stat", p.pid)
+	statPath := fmt.Sprintf("%s/%d/stat",GetEnv("HOST_PROC","/proc"), p.pid)
 	dataBytes, err := ioutil.ReadFile(statPath)
 	if err != nil {
 		return err
