@@ -11,7 +11,7 @@ DLL methods for Windows, cgo for Darwin, etc.
 How it works:
 
   * **Darwin** uses the `sysctl` syscall to retrieve the process table.
-  * **Unix** uses the procfs at `/proc` to inspect the process tree.
+  * **Unix** uses the procfs at `/proc` (can be redefined by `HOST_PROC` env. var) to inspect the process
   * **Windows** uses the Windows API, and methods such as
     `CreateToolhelp32Snapshot` to get a point-in-time snapshot of
     the process table.

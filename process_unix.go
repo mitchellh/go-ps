@@ -34,7 +34,7 @@ func (p *UnixProcess) Executable() string {
 }
 
 func findProcess(pid int) (Process, error) {
-	dir := fmt.Sprintf("/proc/%d", pid)
+	dir := fmt.Sprintf("%s/%d",GetEnv("HOST_PROC","/proc"), pid)
 	_, err := os.Stat(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -48,7 +48,7 @@ func findProcess(pid int) (Process, error) {
 }
 
 func processes() ([]Process, error) {
-	d, err := os.Open("/proc")
+	d, err := os.Open(GetEnv("HOST_PROC","/proc"))
 	if err != nil {
 		return nil, err
 	}

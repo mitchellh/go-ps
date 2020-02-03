@@ -69,7 +69,8 @@ type psinfo_t struct {
 func (p *UnixProcess) Refresh() error {
 	var psinfo psinfo_t
 
-	path := fmt.Sprintf("/proc/%d/psinfo", p.pid)
+	path := fmt.Sprintf("%s/%d/psinfo",GetEnv("HOST_PROC","/proc"), p.pid)
+
 	fh, err := os.Open(path)
 	if err != nil {
 		return err
