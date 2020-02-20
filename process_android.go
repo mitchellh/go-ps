@@ -1,4 +1,4 @@
-// +build linux,!android
+// +build android
 
 package ps
 
@@ -15,12 +15,24 @@ func (p *UnixProcess) Refresh() error {
 	if err != nil {
 		return err
 	}
+	cmdPath := fmt.Sprintf("/proc/%d/cmdline", p.pid)
+	cmdBytes, err := ioutil.ReadFile(cmdPath)
+	if err != nil {
+		return err
+	}
 
 	// First, parse out the image name
+	cmd  := string(cmdBytes)
+	args := strings.SplitN(cmd, string(0x0), 2)
+	if len(args) > 0 {
+		p.binary = args[0]
+	}
 	data := string(dataBytes)
 	binStart := strings.IndexRune(data, '(') + 1
 	binEnd := strings.IndexRune(data[binStart:], ')')
-	p.binary = data[binStart : binStart+binEnd]
+	if p.binary == "" {
+		p.binary = data[binStart : binStart+binEnd]
+	}
 
 	// Move past the image name and start parsing the rest
 	data = data[binStart+binEnd+2:]
