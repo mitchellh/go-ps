@@ -28,7 +28,12 @@ type Process interface {
 // process table, in which case the process table returned might contain
 // ephemeral entities that happened to be running when this was called.
 func Processes() ([]Process, error) {
-	return processes()
+	return processes(nil)
+}
+
+// FilterProcesses returns processes that satisfy the predicate f.
+func FilterProcesses(f func(Process) bool) ([]Process, error) {
+	return processes(f)
 }
 
 // FindProcess looks up a single process by pid.

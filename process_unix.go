@@ -47,7 +47,7 @@ func findProcess(pid int) (Process, error) {
 	return newUnixProcess(pid)
 }
 
-func processes() ([]Process, error) {
+func processes(f func(Process) bool) ([]Process, error) {
 	d, err := os.Open("/proc")
 	if err != nil {
 		return nil, err
@@ -79,6 +79,10 @@ func processes() ([]Process, error) {
 
 			p, err := newUnixProcess(int(pid))
 			if err != nil {
+				continue
+			}
+
+			if f != nil && !f(p) {
 				continue
 			}
 

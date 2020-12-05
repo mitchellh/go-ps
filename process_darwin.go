@@ -28,49 +28,54 @@ func (p *DarwinProcess) Executable() string {
 }
 
 func findProcess(pid int) (Process, error) {
-	ps, err := processes()
+	f := func(p Process) bool {
+		if p.Pid() == pid {
+			return true
+		}
+		return false
+	}
+	ps, err := FilterProcesses(f)
+
 	if err != nil {
 		return nil, err
 	}
 
-	for _, p := range ps {
-		if p.Pid() == pid {
-			return p, nil
-		}
+	if len(ps) == 0 {
+		return nil, nil
 	}
 
-	return nil, nil
+	return ps[0], nil
 }
 
-func processes() ([]Process, error) {
+func processes(f func(Process) bool) ([]Process, error) {
 	buf, err := darwinSyscall()
 	if err != nil {
 		return nil, err
 	}
 
-	procs := make([]*kinfoProc, 0, 50)
+	procs := make([]Process, 0, 50)
+	proc := &kinfoProc{}
 	k := 0
 	for i := _KINFO_STRUCT_SIZE; i < buf.Len(); i += _KINFO_STRUCT_SIZE {
-		proc := &kinfoProc{}
 		err = binary.Read(bytes.NewBuffer(buf.Bytes()[k:i]), binary.LittleEndian, proc)
 		if err != nil {
 			return nil, err
 		}
-
 		k = i
-		procs = append(procs, proc)
-	}
 
-	darwinProcs := make([]Process, len(procs))
-	for i, p := range procs {
-		darwinProcs[i] = &DarwinProcess{
-			pid:    int(p.Pid),
-			ppid:   int(p.PPid),
-			binary: darwinCstring(p.Comm),
+		dp := &DarwinProcess{
+			pid:    int(proc.Pid),
+			ppid:   int(proc.PPid),
+			binary: darwinCstring(proc.Comm),
 		}
+		if f != nil && !f(dp) {
+			continue
+		}
+
+		procs = append(procs, dp)
 	}
 
-	return darwinProcs, nil
+	return procs, nil
 }
 
 func darwinCstring(s [16]byte) string {

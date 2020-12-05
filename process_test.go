@@ -2,6 +2,7 @@ package ps
 
 import (
 	"os"
+	"os/exec"
 	"testing"
 )
 
@@ -42,4 +43,35 @@ func TestProcesses(t *testing.T) {
 	if !found {
 		t.Fatal("should have Go")
 	}
+}
+
+func TestFilterProcesses(t *testing.T) {
+	// should have go
+	cmd := exec.Command("go")
+	err := cmd.Start()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	// Return true only if p is the process started by cmd.Start()
+	f := func(p Process) bool {
+		pid := os.Getpid()
+		if p.PPid() == pid {
+			return true
+		}
+		return false
+	}
+	p, err := FilterProcesses(f)
+	_ = cmd.Wait()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if len(p) != 1 {
+		t.Fatal("should have one go processe")
+	}
+
+	if p[0].Executable() != "go" && p[0].Executable() != "go.exe" {
+		t.Fatal("should have one go processe")
+	}
+
 }
