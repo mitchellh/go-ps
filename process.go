@@ -7,8 +7,11 @@
 // are interested.
 package ps
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 // Process is the generic interface that is implemented on every platform
 // and provides common operations for processes.
+//counterfeiter:generate . Process
 type Process interface {
 	// Pid is the process ID for this process.
 	Pid() int
@@ -24,14 +27,12 @@ type Process interface {
 // NOTE
 // The following makes it easier to test, but changes how the package is used.
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . Ps
-
 // Ps holds a wrapper for the list and find process functions.
+//counterfeiter:generate . Ps
 type Ps interface {
 	Processes() ([]Process, error)
 	FindProcess(pid int) (Process, error)
 }
-
 
 func New() Ps {
 	return &ps{}
