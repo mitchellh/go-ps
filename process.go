@@ -32,7 +32,8 @@ type Ps interface {
 	FindProcess(pid int) (Process, error)
 }
 
-func NewPs() Ps {
+
+func New() Ps {
 	return &ps{}
 }
 
