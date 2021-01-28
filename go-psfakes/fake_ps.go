@@ -4,7 +4,7 @@ package gopsfakes
 import (
 	"sync"
 
-	ps "github.com/mitchellh/go-ps"
+	ps "github.com/billiford/go-ps"
 )
 
 type FakePs struct {
