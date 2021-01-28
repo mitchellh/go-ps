@@ -6,7 +6,8 @@ import (
 )
 
 func TestFindProcess(t *testing.T) {
-	p, err := FindProcess(os.Getpid())
+	ps := NewPs()
+	p, err := ps.FindProcess(os.Getpid())
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -22,7 +23,8 @@ func TestFindProcess(t *testing.T) {
 func TestProcesses(t *testing.T) {
 	// This test works because there will always be SOME processes
 	// running.
-	p, err := Processes()
+	ps := NewPs()
+	p, err := ps.Processes()
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

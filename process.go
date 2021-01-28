@@ -21,13 +21,30 @@ type Process interface {
 	Executable() string
 }
 
+// NOTE
+// The following makes it easier to test, but changes how the package is used.
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . Ps
+
+// Ps holds a wrapper for the list and find process functions.
+type Ps interface {
+	Processes() ([]Process, error)
+	FindProcess(pid int) (Process, error)
+}
+
+func NewPs() Ps {
+	return &ps{}
+}
+
+type ps struct{}
+
 // Processes returns all processes.
 //
 // This of course will be a point-in-time snapshot of when this method was
 // called. Some operating systems don't provide snapshot capability of the
 // process table, in which case the process table returned might contain
 // ephemeral entities that happened to be running when this was called.
-func Processes() ([]Process, error) {
+func (p *ps) Processes() ([]Process, error) {
 	return processes()
 }
 
@@ -35,6 +52,6 @@ func Processes() ([]Process, error) {
 //
 // Process will be nil and error will be nil if a matching process is
 // not found.
-func FindProcess(pid int) (Process, error) {
+func (p *ps) FindProcess(pid int) (Process, error) {
 	return findProcess(pid)
 }
