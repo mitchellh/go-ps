@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"strconv"
 )
 
@@ -18,7 +19,16 @@ type UnixProcess struct {
 	pgrp  int
 	sid   int
 
-	binary string
+	binary  string
+	cmdline string
+}
+
+const (
+	UnixProcRoot = "/proc"
+)
+
+func procDir(pid int) string {
+	return path.Join(UnixProcRoot, fmt.Sprintf("%v", pid))
 }
 
 func (p *UnixProcess) Pid() int {
@@ -33,8 +43,13 @@ func (p *UnixProcess) Executable() string {
 	return p.binary
 }
 
+// CMDLine Full command of process
+func (p *UnixProcess) CMDLine() string {
+	return p.cmdline
+}
+
 func findProcess(pid int) (Process, error) {
-	dir := fmt.Sprintf("/proc/%d", pid)
+	dir := procDir(pid)
 	_, err := os.Stat(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -48,7 +63,7 @@ func findProcess(pid int) (Process, error) {
 }
 
 func processes() ([]Process, error) {
-	d, err := os.Open("/proc")
+	d, err := os.Open(UnixProcRoot)
 	if err != nil {
 		return nil, err
 	}

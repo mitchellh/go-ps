@@ -5,16 +5,33 @@ package ps
 import (
 	"fmt"
 	"io/ioutil"
+	"path"
 	"strings"
 )
 
+func statDir(pid int) string {
+	return path.Join(UnixProcRoot, fmt.Sprintf("%v", pid), "stat")
+}
+
+func cmdPath(pid int) string {
+	return path.Join(UnixProcRoot, fmt.Sprintf("%v", pid), "cmdline")
+}
+
 // Refresh reloads all the data associated with this process.
 func (p *UnixProcess) Refresh() error {
-	statPath := fmt.Sprintf("/proc/%d/stat", p.pid)
+	statPath := statDir(p.pid)
 	dataBytes, err := ioutil.ReadFile(statPath)
 	if err != nil {
 		return err
 	}
+
+	cmdPath := cmdPath(p.pid)
+	cmdLineByte, err := ioutil.ReadFile(cmdPath)
+	if err != nil {
+		return err
+	}
+
+	p.cmdline = string(cmdLineByte)
 
 	// First, parse out the image name
 	data := string(dataBytes)
