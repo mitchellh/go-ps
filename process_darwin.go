@@ -27,6 +27,10 @@ func (p *DarwinProcess) Executable() string {
 	return p.binary
 }
 
+func (p *DarwinProcess) State() rune {
+	return 0
+}
+
 func findProcess(pid int) (Process, error) {
 	ps, err := processes()
 	if err != nil {

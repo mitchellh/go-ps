@@ -19,6 +19,9 @@ type Process interface {
 	// Executable name running this process. This is not a path to the
 	// executable.
 	Executable() string
+
+	// State for this process. Returns zero on Darwin and Windows.
+	State() rune
 }
 
 // Processes returns all processes.

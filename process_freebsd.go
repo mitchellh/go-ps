@@ -121,6 +121,10 @@ func (p *UnixProcess) PPid() int {
 	return p.ppid
 }
 
+func (p *UnixProcess) State() rune {
+	return p.state
+}
+
 func (p *UnixProcess) Executable() string {
 	return p.binary
 }
