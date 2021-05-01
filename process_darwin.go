@@ -73,9 +73,13 @@ func processes() ([]Process, error) {
 
 	darwinProcs := make([]Process, len(procs))
 	for i, p := range procs {
+		pgid, _ := syscall.Getpgid(int(p.Pid))
+		sid, _ := syscall.Getsid(int(p.Pid))
 		darwinProcs[i] = &DarwinProcess{
 			pid:    int(p.Pid),
 			ppid:   int(p.PPid),
+			pgrp:   pgid,
+			sid:    sid,
 			binary: darwinCstring(p.Comm),
 		}
 	}
