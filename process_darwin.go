@@ -12,6 +12,8 @@ import (
 type DarwinProcess struct {
 	pid    int
 	ppid   int
+	pgrp   int
+	sid    int
 	binary string
 }
 
@@ -21,6 +23,14 @@ func (p *DarwinProcess) Pid() int {
 
 func (p *DarwinProcess) PPid() int {
 	return p.ppid
+}
+
+func (p *DarwinProcess) Pgrp() int {
+	return p.pgrp
+}
+
+func (p *DarwinProcess) Sid() int {
+	return p.sid
 }
 
 func (p *DarwinProcess) Executable() string {

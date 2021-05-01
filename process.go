@@ -16,6 +16,12 @@ type Process interface {
 	// PPid is the parent process ID for this process.
 	PPid() int
 
+	// Pgid is the process group ID of the process
+	Pgrp() int
+
+	// Sid is the session ID of the process
+	Sid() int
+
 	// Executable name running this process. This is not a path to the
 	// executable.
 	Executable() string
