@@ -33,6 +33,10 @@ func (p *UnixProcess) Pgrp() int {
 	return p.pgrp
 }
 
+func (p *UnixProcess) Sid() int {
+	return p.sid
+}
+
 func (p *UnixProcess) Executable() string {
 	return p.binary
 }
