@@ -42,6 +42,8 @@ type PROCESSENTRY32 struct {
 type WindowsProcess struct {
 	pid  int
 	ppid int
+	pgrp int
+	sid  int
 	exe  string
 }
 
@@ -51,6 +53,14 @@ func (p *WindowsProcess) Pid() int {
 
 func (p *WindowsProcess) PPid() int {
 	return p.ppid
+}
+
+func (p *WindowsProcess) Pgrp() int {
+	return p.pgrp
+}
+
+func (p *WindowsProcess) Sid() {
+	return p.sid
 }
 
 func (p *WindowsProcess) Executable() string {
