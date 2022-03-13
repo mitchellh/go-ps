@@ -133,6 +133,9 @@ func (p *UnixProcess) Executable() string {
 	return p.binary
 }
 
+func (p *UnixProcess) TtyNr() uint64 {
+	return p.ttyNr
+}
 // Refresh reloads all the data associated with this process.
 func (p *UnixProcess) Refresh() error {
 

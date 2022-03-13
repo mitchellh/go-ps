@@ -14,6 +14,7 @@ type DarwinProcess struct {
 	ppid   int
 	pgrp   int
 	sid    int
+	ttyNr uint64
 	binary string
 }
 
@@ -35,6 +36,11 @@ func (p *DarwinProcess) Sid() int {
 
 func (p *DarwinProcess) Executable() string {
 	return p.binary
+}
+
+
+func (p *DarwinProcess) TtyNr() uint64 {
+	return p.ttyNr
 }
 
 func findProcess(pid int) (Process, error) {

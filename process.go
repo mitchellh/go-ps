@@ -21,7 +21,8 @@ type Process interface {
 
 	// Sid is the session ID of the process
 	Sid() int
-
+	// TtyNr is the TTYID of the process
+	TtyNr() uint64
 	// Executable name running this process. This is not a path to the
 	// executable.
 	Executable() string

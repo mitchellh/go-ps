@@ -67,6 +67,9 @@ func (p *WindowsProcess) Executable() string {
 	return p.exe
 }
 
+func (p *WindowsProcess) TtyNr() uint64 {
+	return p.ttyNr
+}
 func newWindowsProcess(e *PROCESSENTRY32) *WindowsProcess {
 	// Find when the string ends for decoding
 	end := 0

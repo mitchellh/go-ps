@@ -17,7 +17,7 @@ type UnixProcess struct {
 	state rune
 	pgrp  int
 	sid   int
-
+	ttyNr uint64
 	binary string
 }
 
@@ -35,6 +35,10 @@ func (p *UnixProcess) Pgrp() int {
 
 func (p *UnixProcess) Sid() int {
 	return p.sid
+}
+
+func (p *UnixProcess) TtyNr() uint64 {
+	return p.ttyNr
 }
 
 func (p *UnixProcess) Executable() string {
