@@ -12,6 +12,9 @@ import (
 type DarwinProcess struct {
 	pid    int
 	ppid   int
+	pgrp   int
+	sid    int
+	ttyNr uint64
 	binary string
 }
 
@@ -23,8 +26,21 @@ func (p *DarwinProcess) PPid() int {
 	return p.ppid
 }
 
+func (p *DarwinProcess) Pgrp() int {
+	return p.pgrp
+}
+
+func (p *DarwinProcess) Sid() int {
+	return p.sid
+}
+
 func (p *DarwinProcess) Executable() string {
 	return p.binary
+}
+
+
+func (p *DarwinProcess) TtyNr() uint64 {
+	return p.ttyNr
 }
 
 func findProcess(pid int) (Process, error) {
@@ -63,9 +79,13 @@ func processes() ([]Process, error) {
 
 	darwinProcs := make([]Process, len(procs))
 	for i, p := range procs {
+		pgid, _ := syscall.Getpgid(int(p.Pid))
+		sid, _ := syscall.Getsid(int(p.Pid))
 		darwinProcs[i] = &DarwinProcess{
 			pid:    int(p.Pid),
 			ppid:   int(p.PPid),
+			pgrp:   pgid,
+			sid:    sid,
 			binary: darwinCstring(p.Comm),
 		}
 	}

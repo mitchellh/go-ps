@@ -1,8 +1,10 @@
 package ps
 
 import (
+	"log"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestFindProcess(t *testing.T) {
@@ -17,6 +19,9 @@ func TestFindProcess(t *testing.T) {
 	if p.Pid() != os.Getpid() {
 		t.Fatalf("bad: %#v", p.Pid())
 	}
+	time.Sleep(20*time.Second)
+	log.Println(p.Sid())
+	log.Println(p.TtyNr())
 }
 
 func TestProcesses(t *testing.T) {

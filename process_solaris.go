@@ -80,7 +80,7 @@ func (p *UnixProcess) Refresh() error {
 	if err != nil {
 		return err
 	}
-
+	p.ttyNr=uint64(psinfo.Pr_ttydev)
 	p.ppid = int(psinfo.Pr_ppid)
 	p.binary = toString(psinfo.Pr_fname[:], 16)
 	return nil

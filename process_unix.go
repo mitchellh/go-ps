@@ -17,7 +17,7 @@ type UnixProcess struct {
 	state rune
 	pgrp  int
 	sid   int
-
+	ttyNr uint64
 	binary string
 }
 
@@ -29,6 +29,18 @@ func (p *UnixProcess) PPid() int {
 	return p.ppid
 }
 
+func (p *UnixProcess) Pgrp() int {
+	return p.pgrp
+}
+
+func (p *UnixProcess) Sid() int {
+	return p.sid
+}
+
+func (p *UnixProcess) TtyNr() uint64 {
+	return p.ttyNr
+}
+
 func (p *UnixProcess) Executable() string {
 	return p.binary
 }
@@ -37,10 +49,9 @@ func findProcess(pid int) (Process, error) {
 	dir := fmt.Sprintf("/proc/%d", pid)
 	_, err := os.Stat(dir)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-
+	//	if os.IsNotExist(err) {
+	//		return nil, nil
+	//	}
 		return nil, err
 	}
 

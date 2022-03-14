@@ -16,6 +16,13 @@ type Process interface {
 	// PPid is the parent process ID for this process.
 	PPid() int
 
+	// Pgrp is the process group ID of the process
+	Pgrp() int
+
+	// Sid is the session ID of the process
+	Sid() int
+	// TtyNr is the TTYID of the process
+	TtyNr() uint64
 	// Executable name running this process. This is not a path to the
 	// executable.
 	Executable() string
@@ -33,7 +40,7 @@ func Processes() ([]Process, error) {
 
 // FindProcess looks up a single process by pid.
 //
-// Process will be nil and error will be nil if a matching process is
+// Process will be nil and error will be os.ErrNotExist if a matching process is
 // not found.
 func FindProcess(pid int) (Process, error) {
 	return findProcess(pid)

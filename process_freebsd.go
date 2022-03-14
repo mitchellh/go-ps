@@ -121,10 +121,21 @@ func (p *UnixProcess) PPid() int {
 	return p.ppid
 }
 
+func (p *UnixProcess) Pgrp() int {
+	return p.pgrp
+}
+
+func (p *UnixProcess) Sid() int {
+	return p.sid
+}
+
 func (p *UnixProcess) Executable() string {
 	return p.binary
 }
 
+func (p *UnixProcess) TtyNr() uint64 {
+	return p.ttyNr
+}
 // Refresh reloads all the data associated with this process.
 func (p *UnixProcess) Refresh() error {
 

@@ -42,6 +42,8 @@ type PROCESSENTRY32 struct {
 type WindowsProcess struct {
 	pid  int
 	ppid int
+	pgrp int
+	sid  int
 	exe  string
 }
 
@@ -53,10 +55,21 @@ func (p *WindowsProcess) PPid() int {
 	return p.ppid
 }
 
+func (p *WindowsProcess) Pgrp() int {
+	return p.pgrp
+}
+
+func (p *WindowsProcess) Sid() {
+	return p.sid
+}
+
 func (p *WindowsProcess) Executable() string {
 	return p.exe
 }
 
+func (p *WindowsProcess) TtyNr() uint64 {
+	return p.ttyNr
+}
 func newWindowsProcess(e *PROCESSENTRY32) *WindowsProcess {
 	// Find when the string ends for decoding
 	end := 0
