@@ -1,4 +1,4 @@
-// +build linux solaris
+// +build linux netbsd solaris
 
 package ps
 
