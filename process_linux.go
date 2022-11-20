@@ -1,17 +1,18 @@
+//go:build linux
 // +build linux
 
 package ps
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 )
 
 // Refresh reloads all the data associated with this process.
 func (p *UnixProcess) Refresh() error {
 	statPath := fmt.Sprintf("/proc/%d/stat", p.pid)
-	dataBytes, err := ioutil.ReadFile(statPath)
+	dataBytes, err := os.ReadFile(statPath)
 	if err != nil {
 		return err
 	}
